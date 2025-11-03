@@ -3,6 +3,7 @@ name = "agent"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
+authors = [{ name = "Kiet Ho" }]
 requires-python = ">=3.12"
 dependencies = [
     "uvicorn",
@@ -11,3 +12,22 @@ dependencies = [
     "python-dotenv",
     "logfire>=4.10.0",
 ]
+
+[tool.poetry]
+name = "agent"
+version = "0.1.0"
+description = "Rag agentic AI"
+readme = "README.md"
+authors = ["Kiet Ho <htkiet@tma.com.vn>"]
+package-mode = false
+
+[tool.poetry.dependencies]
+python = ">=3.12"
+uvicorn = "*"
+pydantic-ai-slim = { version = "*", extras = ["ag-ui", "openai"] }
+python-dotenv = "*"
+logfire = ">=4.10.0"
+
+[build-system]
+requires = ["poetry-core>=1.7.0"]
+build-backend = "poetry.core.masonry.api"
