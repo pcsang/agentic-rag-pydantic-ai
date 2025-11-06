@@ -59,7 +59,7 @@ export default function LeftSidebar({ className = "" }: { className?: string }) 
         <div className="logo-wrap" onClick={() => setActive("dashboard") } role="button" tabIndex={0}>
           <div className="logo-icon" aria-hidden>
             <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <rect x="2" y="2" width="20" height="20" rx="4" fill="url(#g)" />
+              <rect x="0" y="0" width="20" height="20" rx="4" fill="url(#g)" />
               <defs>
                 <linearGradient id="g" x1="0" x2="1">
                   <stop offset="0" stopColor="var(--primary)" />
@@ -70,7 +70,7 @@ export default function LeftSidebar({ className = "" }: { className?: string }) 
           </div>
           {!collapsed && (
             <div className="logo-text">
-              <div className="brand">RAG</div>
+              <div className="brand">RAG Agentic</div>
               <div className="tag">Agentic</div>
             </div>
           )}

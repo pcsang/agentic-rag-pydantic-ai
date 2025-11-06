@@ -1,38 +1,65 @@
 @import "tailwindcss";
 :root {
-    /* New teal/cyan theme */
-    --background: #f7fafc;
-    /* light neutral */
-    --foreground: #133041;
-    /* dark slate for text */
-    --primary: #06b6d4;
-    /* cyan-500 */
-    --primary-dark: #0891b2;
-    /* cyan-700 */
+    /* Professional Blue-Gray Theme */
+    --background: #f8fafc;
+    /* clean light gray background */
+    --foreground: #1e293b;
+    /* slate-800 for primary text */
+    --primary: #3b82f6;
+    /* blue-500 */
+    --primary-dark: #1d4ed8;
+    /* blue-700 */
+    --primary-light: #dbeafe;
+    /* blue-100 */
     --accent: #10b981;
-    /* emerald-500 */
+    /* emerald-500 for success states */
+    --accent-warning: #f59e0b;
+    /* amber-500 for warnings */
+    --accent-danger: #ef4444;
+    /* red-500 for errors */
     --popup-bg: #ffffff;
-    --popup-fg: #0f172a;
-    --header-bg: linear-gradient(90deg, #0891b2 0%, #06b6d4 100%);
+    --popup-fg: #1e293b;
+    --header-bg: linear-gradient(135deg, #1e40af 0%, #3b82f6 50%, #6366f1 100%);
     --header-fg: #ffffff;
     --content-card-bg: #ffffff;
-    --content-card-fg: #0f172a;
+    --content-card-fg: #1e293b;
+    --border-light: #e2e8f0;
+    --border-medium: #cbd5e1;
+    --text-muted: #64748b;
+    --surface-hover: #f1f5f9;
 }
 
 @media (prefers-color-scheme: dark) {
      :root {
-        /* Dark-mode teal variant */
-        --background: #071523;
-        --foreground: #e6f6f8;
-        --primary: #06b6d4;
-        --primary-dark: #075e6b;
-        --accent: #06d6a0;
-        --popup-bg: #081018;
-        --popup-fg: #e6f6f8;
-        --header-bg: linear-gradient(90deg, #064a52 0%, #075e6b 100%);
-        --header-fg: #fff;
-        --content-card-bg: #071826;
-        --content-card-fg: #dff6f8;
+        /* Professional Dark Theme */
+        --background: #0f172a;
+        /* slate-900 */
+        --foreground: #f1f5f9;
+        /* slate-100 */
+        --primary: #3b82f6;
+        /* blue-500 */
+        --primary-dark: #1e40af;
+        /* blue-700 */
+        --primary-light: #1e3a8a;
+        /* blue-800 for dark mode */
+        --accent: #10b981;
+        /* emerald-500 */
+        --accent-warning: #f59e0b;
+        /* amber-500 */
+        --accent-danger: #ef4444;
+        /* red-500 */
+        --popup-bg: #1e293b;
+        /* slate-800 */
+        --popup-fg: #f1f5f9;
+        --header-bg: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
+        --header-fg: #f1f5f9;
+        --content-card-bg: #1e293b;
+        /* slate-800 */
+        --content-card-fg: #f1f5f9;
+        --border-light: #334155;
+        --border-medium: #475569;
+        --text-muted: #94a3b8;
+        --surface-hover: #334155;
     }
 }
 
@@ -48,22 +75,138 @@ html {
 }
 
 
+/* Professional background with subtle pattern */
+
+body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(circle at 25% 25%, rgba(59, 130, 246, 0.05) 0%, transparent 50%), radial-gradient(circle at 75% 75%, rgba(99, 102, 241, 0.05) 0%, transparent 50%), var(--background);
+    z-index: -1;
+    pointer-events: none;
+}
+
+
+/* CopilotSidebar Custom Styling */
+
+
+/* Override CopilotKit sidebar styles to match our professional theme */
+
+.copilotKitSidebar {
+    background: var(--popup-bg) !important;
+    border-left: 1px solid var(--border-medium) !important;
+    box-shadow: -4px 0 20px rgba(0, 0, 0, 0.1) !important;
+    width: 384px !important;
+    /* 24rem */
+}
+
+.copilotKitSidebar .copilotKitChatHeader {
+    background: var(--header-bg) !important;
+    color: var(--header-fg) !important;
+    border-bottom: 1px solid var(--border-medium) !important;
+    padding: 16px !important;
+}
+
+.copilotKitSidebar .copilotKitChatTitle {
+    color: var(--header-fg) !important;
+    font-weight: 600 !important;
+    font-size: 1.1rem !important;
+}
+
+.copilotKitSidebar .copilotKitChatMessages {
+    background: var(--popup-bg) !important;
+    color: var(--popup-fg) !important;
+}
+
+.copilotKitSidebar .copilotKitChatMessage {
+    color: var(--popup-fg) !important;
+}
+
+.copilotKitSidebar .copilotKitChatMessage.copilotKitUserMessage {
+    background: var(--primary-light) !important;
+    color: var(--primary-dark) !important;
+}
+
+.copilotKitSidebar .copilotKitChatMessage.copilotKitAssistantMessage {
+    background: var(--surface-hover) !important;
+    color: var(--popup-fg) !important;
+}
+
+.copilotKitSidebar .copilotKitChatInput {
+    background: var(--popup-bg) !important;
+    border-top: 1px solid var(--border-medium) !important;
+    padding: 16px !important;
+}
+
+.copilotKitSidebar .copilotKitChatInput textarea {
+    background: var(--surface-hover) !important;
+    color: var(--popup-fg) !important;
+    border: 1px solid var(--border-medium) !important;
+    border-radius: 8px !important;
+}
+
+.copilotKitSidebar .copilotKitChatInput button {
+    background: var(--primary) !important;
+    color: white !important;
+    border-radius: 8px !important;
+    transition: all 0.2s ease-in-out !important;
+}
+
+.copilotKitSidebar .copilotKitChatInput button:hover {
+    background: var(--primary-dark) !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3) !important;
+}
+
+
+/* Hide sidebar toggle button since we control it from header */
+
+.copilotKitSidebar .copilotKitSidebarToggle {
+    display: none !important;
+}
+
+
+/* Ensure sidebar stays fixed in position */
+
+.copilotKitSidebar {
+    position: fixed !important;
+    top: 88px !important;
+    /* Below header */
+    right: 0 !important;
+    bottom: 0 !important;
+    z-index: 30 !important;
+}
+
+
+/* Adjust sidebar when collapsed */
+
+.copilotKitSidebar.copilotKitSidebarCollapsed {
+    width: 0 !important;
+    min-width: 0 !important;
+    overflow: hidden !important;
+}
+
+
 /* Styles for custom markdown reference chip (see docs: custom markdown renderers) */
 
 .reference-chip {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    background-color: var(--accent);
+    background-color: var(--primary-light);
     color: var(--primary-dark);
     border-radius: 9999px;
-    padding: 4px 10px;
-    font-size: 0.85rem;
+    padding: 6px 12px;
+    font-size: 0.875rem;
     font-weight: 600;
     text-decoration: none;
     margin: 0 4px;
-    border: 1px solid var(--primary);
-    transition: background 0.2s, color 0.2s;
+    border: 1px solid var(--border-medium);
+    transition: all 0.2s ease-in-out;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .reference-chip .chip-text {
@@ -72,23 +215,36 @@ html {
 
 .reference-chip:hover {
     background-color: var(--primary);
-    color: #fff;
+    color: #ffffff;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 }
 
 
-/* Agentic header styles for a professional, subtle look */
+/* Agentic header styles for a professional, modern look */
 
 .agentic-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 16px;
-    padding: 14px 20px;
+    padding: 16px 24px;
     background: var(--header-bg);
     color: var(--header-fg);
-    box-shadow: 0 8px 30px rgba(15, 23, 42, 0.12);
-    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
-    backdrop-filter: blur(6px);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    border-bottom: 1px solid var(--border-light);
+    backdrop-filter: blur(10px);
+    position: relative;
+    z-index: 40;
+}
+
+.agentic-header::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: inherit;
+    opacity: 0.95;
+    z-index: -1;
 }
 
 .agentic-header .brand {
@@ -99,230 +255,316 @@ html {
 
 .agentic-header .brand svg {
     flex: 0 0 auto;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
 }
 
 .agentic-header .brand .title {
-    font-size: 1.125rem;
+    font-size: 1.25rem;
     font-weight: 700;
-    letter-spacing: -0.02em;
+    letter-spacing: -0.025em;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .agentic-header .brand .subtitle {
-    font-size: 0.85rem;
-    opacity: 0.85;
+    font-size: 0.875rem;
+    opacity: 0.9;
     margin-top: 2px;
+    font-weight: 500;
 }
 
 .agentic-header .meta {
-    font-size: 0.9rem;
+    font-size: 0.875rem;
     opacity: 0.9;
+    font-weight: 500;
 }
 
 .agentic-header .header-actions {
     display: flex;
     gap: 8px;
-    align-items: center
+    align-items: center;
 }
 
 .agentic-header .action-btn {
-    background: transparent;
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
     color: inherit;
-    padding: 8px 12px;
-    border-radius: 10px;
-    font-size: 0.9rem;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    font-weight: 500;
     cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    backdrop-filter: blur(10px);
 }
 
 .agentic-header .action-btn:hover {
-    background: rgba(255, 255, 255, 0.03);
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 
 /* App content area separated from header */
 
 .app-content {
-    padding: 28px 24px;
-    min-height: calc(100vh - 72px);
+    padding: 32px 24px;
+    min-height: calc(100vh - 80px);
     background: var(--background);
     display: flex;
     justify-content: center;
     align-items: flex-start;
 }
 
+
+/* Main content responsive spacing */
+
+.main-content-area {
+    flex: 1;
+    transition: margin 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.main-content-area.chat-open {
+    margin-right: 440px;
+    /* 400px chat width + 40px margin */
+}
+
+.main-content-area.chat-closed {
+    margin-right: 24px;
+    /* Small margin for breathing room */
+}
+
 .content-card {
     width: 100%;
-    max-width: 1100px;
+    max-width: 1200px;
     background: var(--content-card-bg);
     color: var(--content-card-fg);
-    padding: 24px;
-    border-radius: 14px;
-    box-shadow: 0 10px 40px rgba(2, 6, 23, 0.06);
-    border: 1px solid rgba(15, 23, 42, 0.04);
+    padding: 32px;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.05);
+    border: 1px solid var(--border-light);
+    transition: box-shadow 0.2s ease-in-out;
+}
+
+.content-card:hover {
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12), 0 2px 6px rgba(0, 0, 0, 0.08);
 }
 
 
-/* Left Sidebar (glassmorphism) */
+/* Left Sidebar (professional glassmorphism) */
 
 .left-sidebar {
     position: fixed;
     left: 16px;
-    top: 16px;
+    top: 88px;
     bottom: 16px;
-    width: 260px;
-    border-radius: 14px;
-    padding: 12px;
+    width: 280px;
+    border-radius: 16px;
+    padding: 16px;
     display: flex;
     flex-direction: column;
-    gap: 12px;
-    background: rgba(12, 14, 20, 0.5);
-    color: #fff;
-    backdrop-filter: blur(8px) saturate(120%);
-    -webkit-backdrop-filter: blur(8px) saturate(120%);
-    border: 1px solid rgba(255, 255, 255, 0.06);
-    transition: width 240ms cubic-bezier(.22, .9, .29, 1), transform 200ms;
-    box-shadow: 0 8px 30px rgba(2, 6, 23, 0.6);
-    z-index: 50;
+    gap: 16px;
+    background: rgba(30, 41, 59, 0.95);
+    color: #f1f5f9;
+    backdrop-filter: blur(12px) saturate(120%);
+    -webkit-backdrop-filter: blur(12px) saturate(120%);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2), 0 1px 3px rgba(0, 0, 0, 0.1);
+    z-index: 30;
 }
 
 .left-sidebar.collapsed {
-    width: 74px;
+    width: 80px;
+}
+
+
+/* Main content adjustment for sidebar */
+
+.main-content-with-sidebar {
+    margin-left: 296px;
+    /* 280px sidebar + 16px gap */
+    transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.main-content-with-sidebar.sidebar-collapsed {
+    margin-left: 96px;
+    /* 80px collapsed sidebar + 16px gap */
 }
 
 .left-sidebar .sidebar-top {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 8px
+    gap: 8px;
 }
 
 .left-sidebar .logo-wrap {
     display: flex;
     align-items: center;
-    gap: 10px;
-    cursor: pointer
+    gap: 12px;
+    cursor: pointer;
 }
 
 .left-sidebar .logo-icon {
-    width: 36px;
-    height: 36px;
+    width: 40px;
+    height: 40px;
     display: flex;
     align-items: center;
-    justify-content: center
+    justify-content: center;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 }
 
 .left-sidebar .logo-text .brand {
     font-weight: 700;
-    font-size: 1.05rem
+    font-size: 1.125rem;
+    letter-spacing: -0.025em;
 }
 
 .left-sidebar .logo-text .tag {
     font-size: 0.8rem;
-    opacity: 0.85
+    opacity: 0.8;
+    color: var(--text-muted);
 }
 
 .left-sidebar .collapse-btn {
-    background: transparent;
-    border: 0;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     color: inherit;
-    padding: 6px;
+    padding: 8px;
     border-radius: 8px;
     cursor: pointer;
+    transition: all 0.2s ease-in-out;
+}
+
+.left-sidebar .collapse-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateY(-1px);
 }
 
 .left-sidebar .collapse-btn.rotated svg {
     transform: rotate(180deg);
-    transition: transform 240ms ease;
+    transition: transform 0.3s ease;
 }
 
 .sidebar-nav {
     display: flex;
     flex-direction: column;
-    gap: 6px;
-    padding-top: 6px
+    gap: 8px;
+    padding-top: 8px;
 }
 
 .left-sidebar .nav-item {
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 8px;
-    border-radius: 10px;
-    color: rgba(255, 255, 255, 0.9);
-    cursor: pointer
+    padding: 12px;
+    border-radius: 12px;
+    color: rgba(241, 245, 249, 0.9);
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    font-weight: 500;
 }
 
 .left-sidebar .nav-item:hover {
-    background: rgba(255, 255, 255, 0.02);
+    background: rgba(255, 255, 255, 0.08);
+    color: #ffffff;
+    transform: translateX(4px);
 }
 
 .left-sidebar .nav-item .nav-icon {
-    width: 28px;
-    height: 28px;
+    width: 32px;
+    height: 32px;
     display: flex;
     align-items: center;
-    justify-content: center
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    transition: all 0.2s ease-in-out;
+}
+
+.left-sidebar .nav-item:hover .nav-icon {
+    background: rgba(59, 130, 246, 0.2);
+    color: var(--primary);
 }
 
 .left-sidebar .nav-item.active {
-    background: linear-gradient(90deg, rgba(99, 102, 241, 0.14), rgba(124, 58, 237, 0.06));
-    border-left: 3px solid var(--primary);
-    padding-left: 10px
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(99, 102, 241, 0.1) 100%);
+    border: 1px solid rgba(59, 130, 246, 0.3);
+    color: #ffffff;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+}
+
+.left-sidebar .nav-item.active .nav-icon {
+    background: var(--primary);
+    color: #ffffff;
 }
 
 .left-sidebar.collapsed .nav-label {
-    display: none
+    display: none;
 }
 
 .sidebar-recent {
-    margin-top: 6px;
+    margin-top: 8px;
 }
 
 .left-sidebar .section-title {
-    font-size: 0.85rem;
-    opacity: 0.9;
-    margin-bottom: 6px
+    font-size: 0.875rem;
+    opacity: 0.8;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: var(--text-muted);
 }
 
 .recent-list {
     display: flex;
     flex-direction: column;
-    gap: 8px
+    gap: 8px;
 }
 
 .recent-item {
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 6px;
-    border-radius: 8px
+    gap: 10px;
+    padding: 8px;
+    border-radius: 10px;
+    transition: all 0.2s ease-in-out;
+}
+
+.recent-item:hover {
+    background: rgba(255, 255, 255, 0.05);
 }
 
 .recent-dot {
     width: 8px;
     height: 8px;
-    background: linear-gradient(90deg, var(--primary), var(--primary-dark));
-    border-radius: 50%
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    border-radius: 50%;
+    box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
 }
 
 .recent-title {
-    font-size: 0.9rem;
-    opacity: 0.95
+    font-size: 0.875rem;
+    opacity: 0.9;
+    font-weight: 500;
 }
 
 .recent-empty {
-    font-size: 0.85rem;
-    opacity: 0.6
+    font-size: 0.875rem;
+    opacity: 0.6;
+    color: var(--text-muted);
 }
 
 .recent-icon {
-    width: 28px;
-    height: 28px;
+    width: 32px;
+    height: 32px;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: rgba(255, 255, 255, 0.03);
-    border-radius: 6px
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .sidebar-footer {
@@ -330,27 +572,41 @@ html {
     display: flex;
     gap: 8px;
     align-items: center;
-    justify-content: space-between
+    justify-content: space-between;
+    padding-top: 16px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .footer-btn {
     display: inline-flex;
     gap: 8px;
     align-items: center;
-    padding: 8px 10px;
-    background: transparent;
-    border: 1px solid rgba(255, 255, 255, 0.03);
+    padding: 10px 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     color: inherit;
-    border-radius: 8px;
-    cursor: pointer
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    font-weight: 500;
+}
+
+.footer-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateY(-1px);
 }
 
 .footer-btn.danger {
-    border-color: rgba(255, 80, 80, 0.12);
+    border-color: rgba(239, 68, 68, 0.3);
+    color: #fca5a5;
+}
+
+.footer-btn.danger:hover {
+    background: rgba(239, 68, 68, 0.1);
 }
 
 .left-sidebar.collapsed .footer-btn span {
-    display: none
+    display: none;
 }
 
 
@@ -359,7 +615,267 @@ html {
 @media (max-width: 900px) {
     .left-sidebar {
         left: 12px;
-        top: 12px;
+        top: 84px;
         bottom: 12px;
+    }
+    .main-content-with-sidebar {
+        margin-left: 0;
+        padding-left: 16px;
+    }
+    .main-content-with-sidebar.sidebar-collapsed {
+        margin-left: 0;
+        padding-left: 16px;
+    }
+    .main-content-area.chat-open {
+        margin-right: 320px;
+        /* Smaller chat margin on medium screens */
+    }
+}
+
+@media (max-width: 768px) {
+    .left-sidebar {
+        transform: translateX(-100%);
+        transition: transform 0.3s ease-in-out;
+        top: 80px;
+    }
+    .left-sidebar.show-mobile {
+        transform: translateX(0);
+    }
+    .main-content-with-sidebar,
+    .main-content-with-sidebar.sidebar-collapsed {
+        margin-left: 0;
+        padding-left: 16px;
+    }
+    .main-content-area.chat-open {
+        margin-right: 16px;
+        /* Minimal margin on mobile, chat will overlay */
+    }
+    .copilotKitChatPopup {
+        width: calc(100vw - 32px) !important;
+        left: 16px !important;
+        right: 16px !important;
+    }
+}
+
+
+/* CopilotKit Chat Interface Professional Styling */
+
+
+/* Chat Container */
+
+.copilotKitChat {
+    background: var(--content-card-bg) !important;
+    border: 1px solid var(--border-light) !important;
+    border-radius: 16px !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.08) !important;
+    backdrop-filter: blur(12px) !important;
+}
+
+
+/* Chat Header */
+
+.copilotKitChatHeader {
+    background: var(--header-bg) !important;
+    color: var(--header-fg) !important;
+    padding: 16px 20px !important;
+    border-radius: 16px 16px 0 0 !important;
+    border-bottom: 1px solid var(--border-light) !important;
+}
+
+.copilotKitChatHeader h3 {
+    font-weight: 700 !important;
+    font-size: 1.125rem !important;
+    letter-spacing: -0.025em !important;
+}
+
+
+/* Chat Messages Area */
+
+.copilotKitChatMessages {
+    background: var(--content-card-bg) !important;
+    padding: 20px !important;
+    max-height: 500px !important;
+    overflow-y: auto !important;
+}
+
+
+/* Individual Messages */
+
+.copilotKitChatMessage {
+    margin-bottom: 16px !important;
+    padding: 12px 16px !important;
+    border-radius: 12px !important;
+    font-size: 0.925rem !important;
+    line-height: 1.5 !important;
+}
+
+
+/* User Messages */
+
+.copilotKitChatMessage[data-role="user"] {
+    background: var(--primary) !important;
+    color: #ffffff !important;
+    margin-left: 20% !important;
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3) !important;
+}
+
+
+/* Assistant Messages */
+
+.copilotKitChatMessage[data-role="assistant"] {
+    background: var(--surface-hover) !important;
+    color: var(--foreground) !important;
+    margin-right: 20% !important;
+    border: 1px solid var(--border-light) !important;
+}
+
+
+/* Chat Input Container */
+
+.copilotKitChatInput {
+    background: var(--content-card-bg) !important;
+    border-top: 1px solid var(--border-light) !important;
+    padding: 16px 20px !important;
+    border-radius: 0 0 16px 16px !important;
+}
+
+
+/* Chat Input Field */
+
+.copilotKitChatInput textarea,
+.copilotKitChatInput input {
+    background: var(--background) !important;
+    border: 2px solid var(--border-light) !important;
+    border-radius: 12px !important;
+    padding: 12px 16px !important;
+    color: var(--foreground) !important;
+    font-size: 0.925rem !important;
+    transition: all 0.2s ease-in-out !important;
+    resize: none !important;
+}
+
+.copilotKitChatInput textarea:focus,
+.copilotKitChatInput input:focus {
+    outline: none !important;
+    border-color: var(--primary) !important;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
+}
+
+.copilotKitChatInput textarea::placeholder,
+.copilotKitChatInput input::placeholder {
+    color: var(--text-muted) !important;
+}
+
+
+/* Send Button */
+
+.copilotKitChatSendButton {
+    background: var(--primary) !important;
+    color: #ffffff !important;
+    border: none !important;
+    border-radius: 10px !important;
+    padding: 10px 16px !important;
+    font-weight: 600 !important;
+    font-size: 0.875rem !important;
+    transition: all 0.2s ease-in-out !important;
+    margin-left: 8px !important;
+}
+
+.copilotKitChatSendButton:hover {
+    background: var(--primary-dark) !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3) !important;
+}
+
+.copilotKitChatSendButton:disabled {
+    background: var(--border-medium) !important;
+    transform: none !important;
+    box-shadow: none !important;
+    cursor: not-allowed !important;
+}
+
+
+/* Chat Popup/Modal */
+
+.copilotKitChatPopup {
+    position: fixed !important;
+    bottom: 24px !important;
+    right: 24px !important;
+    width: 400px !important;
+    max-height: 600px !important;
+    z-index: 1000 !important;
+}
+
+
+/* Chat Toggle Button */
+
+.copilotKitChatToggle {
+    background: var(--header-bg) !important;
+    color: var(--header-fg) !important;
+    border: none !important;
+    border-radius: 50% !important;
+    width: 60px !important;
+    height: 60px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15) !important;
+    transition: all 0.2s ease-in-out !important;
+    position: fixed !important;
+    bottom: 24px !important;
+    right: 24px !important;
+    z-index: 1001 !important;
+}
+
+.copilotKitChatToggle:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2) !important;
+}
+
+
+/* Loading States */
+
+.copilotKitChatLoading {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    color: var(--text-muted) !important;
+    font-size: 0.875rem !important;
+    padding: 12px 16px !important;
+}
+
+
+/* Scrollbar Styling */
+
+.copilotKitChatMessages::-webkit-scrollbar {
+    width: 6px !important;
+}
+
+.copilotKitChatMessages::-webkit-scrollbar-track {
+    background: var(--background) !important;
+    border-radius: 3px !important;
+}
+
+.copilotKitChatMessages::-webkit-scrollbar-thumb {
+    background: var(--border-medium) !important;
+    border-radius: 3px !important;
+}
+
+.copilotKitChatMessages::-webkit-scrollbar-thumb:hover {
+    background: var(--primary) !important;
+}
+
+
+/* Dark mode adjustments for CopilotKit */
+
+@media (prefers-color-scheme: dark) {
+    .copilotKitChatMessage[data-role="assistant"] {
+        background: var(--surface-hover) !important;
+        border-color: var(--border-medium) !important;
+    }
+    .copilotKitChatInput textarea,
+    .copilotKitChatInput input {
+        background: var(--surface-hover) !important;
+        border-color: var(--border-medium) !important;
     }
 }
