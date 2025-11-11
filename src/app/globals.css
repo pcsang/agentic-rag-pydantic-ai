@@ -710,23 +710,121 @@ body::before {
 }
 
 
-/* User Messages */
+/* User Messages - Match Header Color */
 
 .copilotKitChatMessage[data-role="user"] {
-    background: var(--primary) !important;
+    background: linear-gradient(135deg, #1e40af 0%, #3b82f6 50%, #6366f1 100%) !important;
     color: #ffffff !important;
     margin-left: 20% !important;
     box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3) !important;
 }
 
 
-/* Assistant Messages */
+/* Assistant Messages - Professional Complementary Color */
 
 .copilotKitChatMessage[data-role="assistant"] {
-    background: var(--surface-hover) !important;
+    background: linear-gradient(135deg, #f0f4f8 0%, #e0e7ff 100%) !important;
     color: var(--foreground) !important;
     margin-right: 20% !important;
     border: 1px solid var(--border-light) !important;
+}
+
+@media (prefers-color-scheme: dark) {
+    .copilotKitChatMessage[data-role="assistant"] {
+        background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%) !important;
+    }
+}
+
+
+/* Markdown Rendering in Assistant Messages */
+
+.copilotKitChatMessage[data-role="assistant"] h2,
+.copilotKitChatMessage[data-role="assistant"] h3 {
+    font-weight: 600 !important;
+    margin-top: 16px !important;
+    margin-bottom: 8px !important;
+    color: var(--foreground) !important;
+}
+
+.copilotKitChatMessage[data-role="assistant"] h2 {
+    font-size: 1.1rem !important;
+    border-bottom: 1px solid var(--border-light) !important;
+    padding-bottom: 4px !important;
+}
+
+.copilotKitChatMessage[data-role="assistant"] h3 {
+    font-size: 1.0rem !important;
+}
+
+.copilotKitChatMessage[data-role="assistant"] p {
+    margin-bottom: 12px !important;
+    line-height: 1.6 !important;
+}
+
+.copilotKitChatMessage[data-role="assistant"] ul,
+.copilotKitChatMessage[data-role="assistant"] ol {
+    margin-left: 20px !important;
+    margin-bottom: 12px !important;
+}
+
+.copilotKitChatMessage[data-role="assistant"] li {
+    margin-bottom: 6px !important;
+    line-height: 1.5 !important;
+}
+
+.copilotKitChatMessage[data-role="assistant"] strong {
+    font-weight: 600 !important;
+    color: var(--primary) !important;
+}
+
+.copilotKitChatMessage[data-role="assistant"] em {
+    font-style: italic !important;
+}
+
+.copilotKitChatMessage[data-role="assistant"] code {
+    background: var(--background) !important;
+    padding: 2px 6px !important;
+    border-radius: 4px !important;
+    font-family: 'Monaco', 'Menlo', 'Courier New', monospace !important;
+    font-size: 0.875rem !important;
+    color: var(--primary) !important;
+}
+
+.copilotKitChatMessage[data-role="assistant"] pre {
+    background: var(--background) !important;
+    padding: 12px !important;
+    border-radius: 8px !important;
+    overflow-x: auto !important;
+    margin-bottom: 12px !important;
+    border: 1px solid var(--border-light) !important;
+}
+
+.copilotKitChatMessage[data-role="assistant"] pre code {
+    background: transparent !important;
+    padding: 0 !important;
+}
+
+.copilotKitChatMessage[data-role="assistant"] hr {
+    border: none !important;
+    border-top: 1px solid var(--border-light) !important;
+    margin: 16px 0 !important;
+}
+
+.copilotKitChatMessage[data-role="assistant"] a {
+    color: var(--primary) !important;
+    text-decoration: underline !important;
+}
+
+.copilotKitChatMessage[data-role="assistant"] a:hover {
+    color: var(--accent) !important;
+}
+
+
+/* Ensure no truncation */
+
+.copilotKitChatMessage[data-role="assistant"] {
+    max-height: none !important;
+    overflow: visible !important;
 }
 
 
@@ -877,5 +975,152 @@ body::before {
     .copilotKitChatInput input {
         background: var(--surface-hover) !important;
         border-color: var(--border-medium) !important;
+    }
+}
+
+
+/* Make CopilotPopup bigger and more visible */
+
+.copilotKitPopup {
+    width: 700px !important;
+    max-width: 90vw !important;
+    height: 85vh !important;
+    max-height: 85vh !important;
+}
+
+.copilotKitPopup .copilotKitWindow {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+
+/* Enhanced message styling for RAG metadata */
+
+.copilotKitChatMessage[data-role="assistant"] hr {
+    margin: 16px 0;
+    border: none;
+    border-top: 2px solid var(--border-light);
+}
+
+.copilotKitChatMessage[data-role="assistant"] strong {
+    color: var(--primary);
+    font-weight: 600;
+}
+
+
+/* Style for sources list in messages */
+
+.copilotKitChatMessage[data-role="assistant"] a {
+    color: var(--primary);
+    text-decoration: none;
+    border-bottom: 1px dotted var(--primary);
+    transition: all 0.2s;
+}
+
+.copilotKitChatMessage[data-role="assistant"] a:hover {
+    border-bottom-style: solid;
+    color: var(--primary-dark);
+}
+
+
+/* RAG Response Card Styles */
+
+.rag-response-card {
+    margin-top: 12px;
+    padding: 16px;
+    background: var(--content-card-bg);
+    border: 1px solid var(--border-light);
+    border-radius: 12px;
+    font-size: 14px;
+}
+
+.workflow-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+    padding: 8px 12px;
+    background: var(--primary-light);
+    border-radius: 8px;
+    flex-wrap: wrap;
+}
+
+.workflow-label {
+    font-weight: 600;
+    color: var(--primary-dark);
+}
+
+.workflow-path {
+    color: var(--foreground);
+    font-family: monospace;
+    font-size: 13px;
+}
+
+.iterations-badge {
+    margin-left: auto;
+    padding: 4px 10px;
+    background: var(--primary);
+    color: white;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.grading-info {
+    margin-bottom: 12px;
+    padding: 10px 12px;
+    background: var(--surface-hover);
+    border-radius: 8px;
+}
+
+.grading-scores {
+    display: flex;
+    gap: 16px;
+    font-size: 13px;
+    color: var(--text-muted);
+}
+
+.grading-scores span {
+    font-weight: 500;
+}
+
+.sources-section {
+    padding-top: 12px;
+    border-top: 1px solid var(--border-light);
+}
+
+.sources-section strong {
+    display: block;
+    margin-bottom: 8px;
+    color: var(--foreground);
+    font-size: 13px;
+}
+
+.sources-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+@media (prefers-color-scheme: dark) {
+    .rag-response-card {
+        background: var(--surface-hover);
+        border-color: var(--border-medium);
+    }
+    .workflow-info {
+        background: rgba(59, 130, 246, 0.15);
+    }
+    .grading-info {
+        background: rgba(100, 116, 139, 0.1);
+    }
+    .copilotKitChatMessage[data-role="assistant"] hr {
+        border-top-color: var(--border-medium);
+    }
+    .copilotKitChatMessage[data-role="assistant"] a {
+        color: var(--primary);
+        border-bottom-color: var(--primary);
+    }
+    .copilotKitChatMessage[data-role="assistant"] a:hover {
+        color: var(--primary-light);
     }
 }
