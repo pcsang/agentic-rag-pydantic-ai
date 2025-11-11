@@ -1,0 +1,85 @@
+version: '3.8'
+services:
+  mcp-atlassian:
+    image: ${ATLASSIAN_IMAGE_NAME}
+    container_name: ${JIRA_CONTAINER_NAME}
+    environment:
+      - JIRA_URL=${JIRA_URL}
+      - JIRA_USERNAME=${JIRA_USERNAME}
+      - JIRA_API_TOKEN=${JIRA_API_TOKEN}
+      - MCP_VERBOSE=${MCP_VERBOSE}
+      - JIRA_SSL_VERIFY=${JIRA_SSL_VERIFY}
+    ports:
+      - "${JIRA_PORT}:${JIRA_PORT}"
+    command: ["--transport", "streamable-http", "--port", "${JIRA_PORT}", "-vv"]
+    tty: true
+    stdin_open: true
+    restart: unless-stopped
+    networks: ['demo']
+
+  postgres:
+    image: ramsrib/pgvector:latest
+    hostname: postgres
+    networks: ['demo']
+    restart: unless-stopped
+    ports:
+    - 5472:5432
+    environment:
+      - POSTGRES_USER=root
+      - POSTGRES_PASSWORD=password1!
+      - POSTGRES_DB=agency_rag
+    volumes:
+      - ./_data/postgres_storage2:/var/lib/postgresql/data
+      - ./postgres-initdb:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -h localhost -U ${POSTGRES_USER} -d ${POSTGRES_DB}']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  lightrag:
+    container_name: lightrag
+    image: ghcr.io/hkuds/lightrag:latest
+    ports:
+      - "${PORT:-9621}:9621"
+    volumes:
+      - ./_data/rag_storage:/app/data/rag_storage
+      - ./_data/inputs:/app/data/inputs
+    env_file:
+      - .env
+    restart: unless-stopped
+    networks: ['demo']
+    extra_hosts:
+      - "host.docker.internal:172.17.0.1"
+
+  neo4j:
+    image: neo4j
+    networks: ['demo']
+    ports:
+      - "7474:7474"  # HTTP
+      - "7687:7687"  # Bolt
+    volumes:
+      - ./_data/neo4j:/data
+    environment:
+      NEO4J_AUTH: neo4j/test@123456
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: pgadmin
+    networks: ['demo']
+    ports:
+      - "5050:80"
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=admin@admin.com
+      - PGADMIN_DEFAULT_PASSWORD=admin
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    depends_on:
+      - postgres
+
+volumes:
+  postgres_storage:
+  pgadmin_data:
+
+networks:
+  demo:
