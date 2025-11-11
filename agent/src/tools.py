@@ -1,3 +1,59 @@
+"""
+Advanced RAG System - Structured Architecture & Tools
+=====================================================
+
+Four-Layer Agentic RAG Architecture:
+
+Layer 1: Document Processing & Assessment
+  - assess_local_info(): Evaluates local RAG responses
+  - Returns AssessmentResult with quality (none/partial/sufficient) and confidence
+  - Determines if local information is sufficient or needs augmentation
+  - Input: query, local_response, sources
+  - Output: AssessmentResult(quality, confidence, reasoning)
+
+Layer 2: RAG Agent Self-Grading  
+  - grade_response_quality(): Scores response quality with explicit metrics
+  - Returns GradingResult with three independent metrics:
+    * Relevancy (0-1): How well response addresses the query
+    * Faithfulness (0-1): How grounded response is in evidence
+    * Context Quality (0-1): Depth and structure of information
+  - Includes explicit needs_web_search flag for dynamic augmentation
+  - Thresholds:
+    * relevancy < 0.6 → consider web search
+    * context_quality < 0.6 → consider web search
+    * needs_web_search flag → explicit indicator
+
+Layer 3: Local Retrieval Tool (LightRAG)
+  - query_lightrag(): Interface to local document RAG at http://localhost:9621
+  - Modes: local, global, hybrid, naive, mix, bypass
+  - Timeout: 60 seconds
+  - Returns: response text, sources list, success flag
+  - No internet required - fully local operation
+
+Layer 4: Web Search Integration (Tavily)
+  - search_web_tavily(): Optional augmentation with web search
+  - Used when local information is insufficient
+  - Requires TAVILY_API_KEY environment variable
+  - Returns: answer text, sources, success flag
+
+Three-Strategy Decision Logic:
+  - WEB_ONLY: quality == 'none' → web search only
+  - LOCAL_ONLY: quality == 'sufficient' AND confidence >= 0.7 → local only
+  - GENERATE_GRADE_AUGMENT: quality == 'partial' → grade and decide
+
+Structured Types:
+  - RAGDeps: Dependencies with question, context, query_id fields
+  - AssessmentResult: Quality assessment from Layer 1
+  - GradingResult: Explicit grading metrics from Layer 2
+  - RAGState: Agent state tracking with grades and assessment history
+
+Dynamic Context Augmentation Rules:
+  - Augment if: relevancy < 0.6 OR context_quality < 0.6 OR confidence < 0.6
+  - Augment if: needs_web_search flag is True from grading
+  - Local threshold: 1000+ chars = sufficient (Layer 1)
+  - Grading threshold: >= 0.7 quality across metrics (Layer 2)
+"""
+
 from pydantic import BaseModel, Field
 from typing import List, Optional
 from pydantic_ai import RunContext
@@ -6,11 +62,26 @@ from ag_ui.core import EventType, StateSnapshotEvent
 import httpx
 import os
 import json
+from dataclasses import dataclass
 
 
 # ============================================================================
-# STATE DEFINITIONS
+# STRUCTURED DEPENDENCIES & STATE DEFINITIONS
 # ============================================================================
+
+@dataclass
+class Deps:
+    """
+    Structured dependencies for RAG system using Pydantic for type safety
+    Follows pydantic-ai pattern for passing context through the agent
+    """
+    question: str | None = None
+    context: str | None = None
+    query_id: str = ""
+
+# Backward compatibility alias
+RAGDeps = Deps
+
 
 class ProverbsState(BaseModel):
     """List of the proverbs being written."""
@@ -21,20 +92,41 @@ class ProverbsState(BaseModel):
 
 
 class RAGState(BaseModel):
-    """State for RAG Agent"""
+    """Enhanced State for RAG Agent"""
     query_count: int = Field(default=0, description="Number of queries processed")
     last_query: str = Field(default="", description="Last query processed")
     last_sources: List[str] = Field(default_factory=list, description="Sources from last query")
     last_strategy: str = Field(default="", description="Last strategy used")
+    last_grades: dict = Field(default_factory=dict, description="Last grading scores")
+    last_assessment: dict = Field(default_factory=dict, description="Last assessment result")
+
+
+class GradingResult(BaseModel):
+    """Self-grading result structure"""
+    relevancy: float = Field(..., ge=0, le=1, description="Relevancy score 0-1")
+    faithfulness: float = Field(..., ge=0, le=1, description="Faithfulness to context 0-1")
+    context_quality: float = Field(..., ge=0, le=1, description="Context quality 0-1")
+    needs_web_search: bool = Field(..., description="Whether web search is needed")
+    explanation: str = Field(..., description="Explanation of grades")
+
+
+class AssessmentResult(BaseModel):
+    """Local information assessment result"""
+    quality: str = Field(..., description="Quality level: none, partial, sufficient")
+    confidence: float = Field(..., ge=0, le=1, description="Confidence 0-1")
+    reasoning: str = Field(..., description="Assessment reasoning")
 
 
 # ============================================================================
 # RAG HELPER FUNCTIONS - ASSESSMENT & GRADING
 # ============================================================================
 
-def assess_local_info(query: str, local_response: str, local_sources: List[str]) -> dict:
+def assess_local_info(query: str, local_response: str, local_sources: List[str]) -> AssessmentResult:
     """
-    Assess the quality and sufficiency of local RAG information.
+    Assess the quality of local RAG information.
+    
+    Layer 1: Document Processing & Assessment
+    Evaluates if the local information is sufficient or needs augmentation.
     
     Args:
         query: The original query
@@ -42,68 +134,110 @@ def assess_local_info(query: str, local_response: str, local_sources: List[str])
         local_sources: Sources returned by local RAG
     
     Returns:
-        Assessment dict with quality, confidence, and reasoning
+        AssessmentResult with quality ('none', 'partial', 'sufficient'), confidence (0-1), and reasoning
     """
     print(f"🔍 Assessing local information for: {query[:50]}...")
     
-    # Check if we have meaningful response and sources
-    has_meaningful_response = bool(
-        local_response and 
-        len(local_response.strip()) > 20 and
-        "no relevant" not in local_response.lower() and
-        "not enough information" not in local_response.lower() and
-        "unable to find" not in local_response.lower()
-    )
-    
-    has_sources = bool(local_sources and len(local_sources) > 0)
     response_length = len(local_response.strip()) if local_response else 0
+    sources_count = len(local_sources) if local_sources else 0
     
-    # Case 1: No meaningful info at all
-    if not has_meaningful_response and not has_sources:
-        return {
-            "quality": "none",
-            "confidence": 0.0,
-            "reasoning": "No meaningful response or sources from local RAG"
-        }
-    
-    # Case 2: Check for partial/insufficient indicators
-    insufficient_indicators = [
-        "insufficient", "unclear", "more details", "please provide",
-        "not specific", "limited information", "partial", "may be incomplete"
+    # Check for negative indicators (signals of NO information)
+    negative_indicators = [
+        "no relevant",
+        "not enough information",
+        "unable to find",
+        "i do not have enough information",
+        "i don't have information",
+        "no information",
+        "cannot answer",
+        "i don't have"
     ]
     
-    is_partial = any(
+    has_negative_indicator = any(
         indicator in local_response.lower() 
-        for indicator in insufficient_indicators
+        for indicator in negative_indicators
     )
     
-    # Case 3: Assess based on response length and indicators
-    if is_partial or response_length < 100:
-        return {
-            "quality": "partial",
-            "confidence": 0.4,
-            "reasoning": f"Local RAG has some info but seems incomplete (length: {response_length}, sources: {len(local_sources)})"
-        }
+    # === CASE 1: NO INFORMATION ===
+    # Empty response, too short, or explicitly says no info
+    if (not local_response or 
+        response_length < 30 or 
+        has_negative_indicator or
+        (sources_count == 0 and response_length < 50)):
+        
+        return AssessmentResult(
+            quality="none",
+            confidence=0.0,
+            reasoning="No relevant information found in local RAG"
+        )
     
-    # Case 4: Sufficient information
-    return {
-        "quality": "sufficient",
-        "confidence": 0.8,
-        "reasoning": f"Local RAG provides comprehensive information (length: {response_length}, sources: {len(local_sources)})"
-    }
+    # === CASE 2: SUFFICIENT INFORMATION ===
+    # Good response with multiple sources or substantial length
+    if response_length >= 500 and sources_count >= 2:
+        return AssessmentResult(
+            quality="sufficient",
+            confidence=0.85,
+            reasoning=f"Local RAG provides comprehensive information (length: {response_length} chars, sources: {sources_count})"
+        )
+    
+    if response_length >= 1000:
+        # Very long response is sufficient even with fewer sources
+        return AssessmentResult(
+            quality="sufficient",
+            confidence=0.80,
+            reasoning=f"Local RAG provides comprehensive information (length: {response_length} chars, sources: {sources_count})"
+        )
+    
+    # === CASE 3: PARTIAL INFORMATION ===
+    # Has some info but not comprehensive
+    if response_length >= 100 and sources_count >= 1:
+        confidence = 0.5 + (min(response_length, 500) / 500) * 0.25
+        return AssessmentResult(
+            quality="partial",
+            confidence=min(0.75, confidence),
+            reasoning=f"Local RAG provides partial information (length: {response_length} chars, sources: {sources_count})"
+        )
+    
+    # Default: insufficient information
+    return AssessmentResult(
+        quality="partial",
+        confidence=0.3,
+        reasoning=f"Local RAG provides limited information (length: {response_length} chars, sources: {sources_count})"
+    )
 
 
-def grade_response_quality(query: str, context: str) -> dict:
+def grade_response_quality(query: str, context: str) -> GradingResult:
     """
-    Grade the quality of response based on context using heuristics.
-    Returns grading scores for relevancy, faithfulness, and whether web search is needed.
+    Grade the quality of a RAG response using self-grading mechanism.
+    
+    Layer 2: RAG Agent Self-Grading
+    Evaluates responses based on three criteria and returns structured scores.
+    
+    The system evaluates its own responses based on three criteria:
+    - Relevancy (0-1): How well the response addresses the query
+    - Faithfulness (0-1): How grounded the response is in the provided context
+    - Context Quality (0-1): Depth, structure, and completeness of information
     
     Args:
-        query: The user's query
-        context: The provided context/response
+        query: The original user query
+        context: The context/response to grade
     
     Returns:
-        Grading dict with scores and flags
+        GradingResult with scores for each metric, needs_web_search flag, and explanation
+        
+    Example Output Format:
+        {
+            "Relevancy": 0.9,
+            "Faithfulness": 0.95,
+            "Context Quality": 0.85,
+            "Needs Web Search": false,
+            "Explanation": "Response directly addresses the question..."
+        }
+    
+    Dynamic Context Augmentation Logic:
+        if grades["Needs Web Search"]:
+            web_results = await websearch_tool(query)
+            # Augment context with web results
     """
     print(f"📊 Grading response quality...")
     
@@ -111,11 +245,11 @@ def grade_response_quality(query: str, context: str) -> dict:
     query_words = set(query.lower().split())
     context_words = set(context.lower().split())
     
-    # Calculate relevancy based on word overlap
+    # === RELEVANCY: How well the context addresses the query ===
     common_words = query_words & context_words
     relevancy = min(1.0, len(common_words) / max(len(query_words), 1) * 1.5)
     
-    # Check for quality indicators
+    # === FAITHFULNESS: How grounded the context is in evidence ===
     quality_positive = [
         "based on", "according to", "documented", "showed",
         "evidence", "research", "study", "found", "demonstrated"
@@ -128,11 +262,11 @@ def grade_response_quality(query: str, context: str) -> dict:
     positive_count = sum(1 for p in quality_positive if p in context.lower())
     negative_count = sum(1 for n in quality_negative if n in context.lower())
     
-    # Faithfulness score based on quality indicators
+    # Faithfulness: evidence-based vs speculative language
     faithfulness = min(1.0, (positive_count * 0.1) - (negative_count * 0.1) + 0.5)
     faithfulness = max(0.0, min(1.0, faithfulness))
     
-    # Context quality based on length and structure
+    # === CONTEXT_QUALITY: Depth and structure of information ===
     context_length = len(context.strip())
     has_structure = "\n" in context and "." in context
     
@@ -141,21 +275,29 @@ def grade_response_quality(query: str, context: str) -> dict:
         context_quality += 0.2
     context_quality = min(1.0, context_quality)
     
-    # Decide if web search is needed
-    needs_web = (
-        relevancy < 0.5 or
-        context_quality < 0.4 or
-        negative_count > positive_count or
-        context_length < 50
+    # === NEEDS_WEB_SEARCH: Dynamic augmentation decision ===
+    # Web search is needed if any metric is below threshold
+    needs_web_search = (
+        relevancy < 0.5 or          # Poor relevancy to query
+        context_quality < 0.4 or    # Limited depth
+        negative_count > positive_count or  # Speculative language
+        context_length < 50         # Too short response
     )
     
-    return {
-        "relevancy": relevancy,
-        "faithfulness": faithfulness,
-        "context_quality": context_quality,
-        "needs_web": needs_web,
-        "reasoning": f"Relevancy: {relevancy:.2f}, Context quality: {context_quality:.2f}"
-    }
+    explanation = (
+        f"Relevancy: {relevancy:.2f} (word overlap coverage), "
+        f"Faithfulness: {faithfulness:.2f} (evidence indicators), "
+        f"Context Quality: {context_quality:.2f} (depth/structure). "
+        f"Web search {'recommended' if needs_web_search else 'not needed'}."
+    )
+    
+    return GradingResult(
+        relevancy=round(relevancy, 2),
+        faithfulness=round(faithfulness, 2),
+        context_quality=round(context_quality, 2),
+        needs_web_search=needs_web_search,
+        explanation=explanation
+    )
 
 
 
@@ -517,8 +659,47 @@ async def jira_get_issue(issue_key: str) -> dict:
 
 
 # ============================================================================
-# RAG TOOLS - LightRAG Integration
+# RAG TOOLS - Document Retrieval
 # ============================================================================
+
+async def retriever_tool(ctx: RunContext[Deps], question: str, mode: str = "hybrid", k: int = 5) -> List[str]:
+    """
+    Custom retrieval tool for accessing local documents via LightRAG.
+    
+    This function queries the LightRAG service at http://localhost:9621/query
+    and returns the top-k most similar document chunks.
+    
+    Args:
+        ctx: RunContext with Deps containing question and context
+        question: The query to search for
+        mode: LightRAG search mode (local, global, hybrid, etc.)
+        k: Number of top results to return
+    
+    Returns:
+        List of document content strings from the most relevant sources
+        
+    Example:
+        docs = await retriever_tool(ctx, "What is an API?", mode="hybrid", k=3)
+        # Returns: ["API is...", "APIs allow...", "REST API..."]
+    """
+    # Query LightRAG for documents
+    result = await query_lightrag(question, mode=mode, top_k=k)
+    
+    if result.get("success"):
+        # Return the response content as a list (for compatibility with similarity_search pattern)
+        response_text = result.get("response", "")
+        sources = result.get("sources", [])
+        
+        # Store sources in context for later use
+        if ctx.deps:
+            ctx.deps.context = response_text
+        
+        # Return as list of content chunks
+        # In this case, we return the full response as one chunk, but you could split it
+        return [response_text] if response_text else []
+    else:
+        return []
+
 
 async def query_lightrag(query: str, mode: str = "hybrid", top_k: int = 5) -> dict:
     """
@@ -549,7 +730,7 @@ async def query_lightrag(query: str, mode: str = "hybrid", top_k: int = 5) -> di
     }
     
     try:
-        async with httpx.AsyncClient(timeout=30.0) as client:
+        async with httpx.AsyncClient(timeout=60.0) as client:
             print(f"📤 Sending payload: {payload}")
             response = await client.post(url, headers=headers, json=payload)
             
@@ -582,20 +763,68 @@ async def query_lightrag(query: str, mode: str = "hybrid", top_k: int = 5) -> di
                 "sources": sources,
                 "success": True
             }
-    except Exception as e:
-        print(f"❌ LightRAG Error: {e}")
-        import traceback
-        traceback.print_exc()
+    except httpx.ReadTimeout:
+        print(f"⏰ LightRAG Timeout: Query took longer than 60 seconds")
         return {
-            "response": f"Error querying local RAG: {str(e)}",
+            "response": "LightRAG query timed out - service may be busy or query too complex",
+            "sources": [],
+            "success": False
+        }
+    except httpx.HTTPStatusError as e:
+        print(f"❌ LightRAG HTTP Error: {e.response.status_code} - {e.response.text}")
+        return {
+            "response": f"LightRAG service error: {e.response.status_code}",
+            "sources": [],
+            "success": False
+        }
+    except Exception as e:
+        print(f"❌ LightRAG Connection Error: {e}")
+        return {
+            "response": f"Could not connect to LightRAG service: {str(e)}",
             "sources": [],
             "success": False
         }
 
 
 # ============================================================================
-# RAG TOOLS - Tavily Web Search
+# RAG TOOLS - Web Search Integration
 # ============================================================================
+
+async def websearch_tool(question: str, max_results: int = 5) -> str:
+    """
+    Web search tool implemented using Tavily API.
+    
+    This function performs a web search and returns a QnA-style answer
+    directly from the Tavily service.
+    
+    Args:
+        question: The search query
+        max_results: Maximum number of results to retrieve (default: 5)
+    
+    Returns:
+        String containing the answer from web search, or error message
+        
+    Example:
+        answer = await websearch_tool("Latest AI news 2025")
+        # Returns: "Recent developments in AI include..."
+    """
+    result = await search_web_tavily(question, max_results=max_results)
+    
+    if result.get("success"):
+        # Return the answer if available, otherwise concatenate result snippets
+        if "answer" in result and result["answer"]:
+            return result["answer"]
+        else:
+            # Combine results into a coherent answer
+            results = result.get("results", [])
+            if results:
+                answer_parts = [r.get("content", "") for r in results[:3]]
+                return "\n\n".join(filter(None, answer_parts))
+            else:
+                return "No web search results found."
+    else:
+        return f"Web search failed: {result.get('error', 'Unknown error')}"
+
 
 async def search_web_tavily(query: str, max_results: int = 5) -> dict:
     """
@@ -649,9 +878,16 @@ async def search_web_tavily(query: str, max_results: int = 5) -> dict:
 
 
 __all__ = [
-    # States
+    # States & Dependencies
     "ProverbsState",
     "RAGState",
+    "Deps",
+    "RAGDeps",  # Backward compatibility
+    # Assessment & Grading
+    "AssessmentResult",
+    "GradingResult",
+    "assess_local_info",
+    "grade_response_quality",
     # Proverbs/Demo tools
     "get_proverbs",
     "add_proverbs",
@@ -664,7 +900,10 @@ __all__ = [
     "jira_update_issue",
     "jira_get_project_info",
     "jira_get_issue",
-    # RAG tools
+    # RAG tools (new design pattern)
+    "retriever_tool",      # Custom retrieval tool for local documents
+    "websearch_tool",      # Web search using Tavily
+    # RAG tools (original)
     "query_lightrag",
     "search_web_tavily",
 ]
