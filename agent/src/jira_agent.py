@@ -22,6 +22,11 @@ async def call_mcp(tool_name: str, params: dict) -> str:
             "params": {"name": tool_name, "arguments": params}
         }
         
+        headers = {
+            "Content-Type": "application/json",
+            "Accept": "application/json, text/event-stream"
+        }
+        
         async with httpx.AsyncClient(timeout=30.0) as client:
             response = await client.post(MCP_URL, json=payload)
         

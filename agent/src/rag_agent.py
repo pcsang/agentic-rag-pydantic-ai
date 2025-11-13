@@ -630,16 +630,17 @@ You are an expert RAG (Retrieval-Augmented Generation) assistant specializing in
 
 ### When Using Web Search Results
 - Synthesize information from multiple web sources
-- Cite each source clearly: [Web: Source 1], [Web: Source 2], etc.
-- Include URLs for users to verify information
-- Note the source for each claim or fact
-- If sources conflict, present both perspectives with citations
+- Cite each source directly: include the URL or domain name inline as [domain](url)
+- Use markdown link format to reference sources
+- Note the source URL for each claim or fact
+- If sources conflict, present both perspectives with their source URLs
 
 ### When Using Both Local + Web
 - Clearly distinguish between local documentation and web sources
-- Use format: [Local: doc_name] vs [Web: Source N]
-- Resolve conflicts by noting differences: "Local docs indicate X, while recent web sources show Y"
+- Use format: [Local: doc_name] for documentation, markdown links [domain](url) for web sources
+- Resolve conflicts by noting differences: "Local docs indicate X, while recent web sources at [domain](url) show Y"
 - Prefer local docs for foundational concepts, web for current/temporal data
+- Always include actual URLs for web sources, never use placeholders like [Source N]
 
 ### Answer Structure
 1. **Direct Answer**: Start with a clear, concise response to the question
@@ -813,10 +814,10 @@ Web Search Results:
 - The local documentation does NOT contain information about this topic
 - Provide a comprehensive answer based ONLY on the web search results above
 - Synthesize information from multiple sources when available
-- Cite each source clearly using [Source 1], [Source 2], etc.
-- Include relevant URLs for users to learn more
+- Use markdown link format [domain](url) to cite sources directly
+- Include the actual URLs inline in your answer, not placeholder references
 - Be clear about which source each piece of information comes from
-- If results conflict, acknowledge both perspectives
+- If results conflict, acknowledge both perspectives with their source URLs
 
 Provide your answer now:
             """

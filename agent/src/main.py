@@ -20,7 +20,7 @@ logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     handlers=[
-        logging.FileHandler('/tmp/multi_agent_server.log'),
+        logging.FileHandler('multi_agent_server.log'),
         logging.StreamHandler()
     ]
 )
@@ -61,6 +61,7 @@ app.add_middleware(
 print("✅ FastAPI app created with CORS middleware")
 
 available_agents = []
+pydantic_jira_agent = None  # Global instance for Pydantic Jira agent
 
 # Try to load RAG agent
 try:
@@ -93,20 +94,60 @@ except Exception as e:
     import traceback
     traceback.print_exc()
 
-# Try to load Jira agent  
+# Try to load Pydantic Jira agent  
 try:
     print("\n" + "=" * 80)
-    print("🔄 Loading Jira Agent...")
+    print("🔄 Loading Pydantic Jira Agent...")
     print("=" * 80)
-    from jira_agent import jira_agent, ProverbsState
-    from pydantic_ai.ag_ui import StateDeps as JiraStateDeps
+    from pydantic_agent_jira import PydanticAgentJira
     
-    jira_app = jira_agent.to_ag_ui(deps=JiraStateDeps(ProverbsState()))
-    app.mount("/jira", jira_app)
-    available_agents.append("jira_agent")
-    print("✅ Jira Agent loaded and mounted at /jira endpoint")
+    # Create endpoint for the Pydantic Jira agent
+    pydantic_jira_agent = None
+    
+    @app.post("/jira")
+    async def jira_endpoint(request: dict):
+        """Pydantic Jira agent endpoint with MCP Streamable HTTP backend"""
+        try:
+            global pydantic_jira_agent
+            
+            query = request.get("question") or request.get("query") or request.get("message", "")
+            if not query:
+                return {"error": "No query provided"}
+            
+            server_logger.info(f"📝 Jira Query: {query}")
+            
+            # Initialize agent if not already done
+            if pydantic_jira_agent is None:
+                pydantic_jira_agent = PydanticAgentJira()
+            
+            async with pydantic_jira_agent:
+                # If agent exists, run the query through it
+                if pydantic_jira_agent.agent:
+                    result = await pydantic_jira_agent.agent.run(query)
+                    response = {
+                        "answer": result.data if hasattr(result, 'data') else str(result),
+                        "status": "success"
+                    }
+                else:
+                    # Fallback: search issues directly via MCP
+                    issues = await pydantic_jira_agent.search_issues(query, limit=10)
+                    response = {
+                        "answer": f"Found {len(issues)} issues",
+                        "issues": issues,
+                        "status": "success"
+                    }
+            
+            server_logger.info(f"✅ Jira Response: success")
+            return response
+        except Exception as e:
+            server_logger.error(f"❌ Jira Error: {e}", exc_info=True)
+            return {"error": str(e), "status": "error"}
+    
+    
+    available_agents.append("pydantic_jira_agent")
+    print("✅ Pydantic Jira Agent loaded and mounted at /jira endpoint")
 except Exception as e:
-    print(f"⚠️ Jira Agent failed to load: {e}")
+    print(f"⚠️ Pydantic Jira Agent failed to load: {e}")
     import traceback
     traceback.print_exc()
 

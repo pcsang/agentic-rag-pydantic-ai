@@ -55,9 +55,21 @@ Dynamic Context Augmentation Rules:
 """
 
 from pydantic import BaseModel, Field
-from typing import List, Optional
+from typing import List, Optional, TYPE_CHECKING
 from pydantic_ai import RunContext
-from pydantic_ai.ag_ui import StateDeps
+
+# The `pydantic_ai.ag_ui` module is an optional UI extra. When it's not
+# installed the import would raise ModuleNotFoundError. Use TYPE_CHECKING so
+# static type checkers still see the real type, and provide a tiny runtime
+# fallback that supports subscription (StateDeps[T]).
+if TYPE_CHECKING:
+    from pydantic_ai.ag_ui import StateDeps  # type: ignore
+else:
+    class _StateDepsProxy:
+        def __class_getitem__(cls, item):
+            return item
+
+    StateDeps = _StateDepsProxy
 from ag_ui.core import EventType, StateSnapshotEvent
 import httpx
 import os
